@@ -1,26 +1,46 @@
 ﻿using System;
-using System.Net;
-using System.Linq;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace MyWebServer
+namespace SimpleWebServer
 {
-
     class Program
     {
+
         static void Main(string[] args)
         {
-            var ws = new WebServer(SendResponse, "http://localhost:8080/test/");
+            WebServer ws = new WebServer(SendResponse, "http://localhost:8080/");
             ws.Run();
             Console.WriteLine("A simple webserver. Press a key to quit.");
             Console.ReadKey();
             ws.Stop();
         }
 
-        public static string SendResponse(HttpListenerRequest request)
+        private static Response SendResponse(HttpListenerRequest request)
         {
+            var physicalFile = "C:/Users/arupade/source/repos/MyWebServer/Something/test.html.txt";
 
-            return string.Format("<HTML><BODY>My web page.<br>{0}</BODY></HTML>", DateTime.Now);
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (FileStream fs = File.OpenRead(physicalFile))
+                {
+                    byte[] buffer = new byte[4096];
+                    int read;
+                    while ((read = fs.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        ms.Write(buffer, 0, read);
+                    }
+                    return new Response()
+                    {
+                        Content = ms.ToArray()
+                    };
+                }
+            }
+
         }
     }
 }
